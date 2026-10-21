@@ -1,0 +1,20 @@
+launch-templates:
+  linux-medium-bun:
+    resource-class: docker_linux_amd64/medium
+    image: ubuntu22.04-node20.11-v9
+    env:
+      CI: 'true'
+      NX_DAEMON: 'false'
+    init-steps:
+      - name: Checkout
+        uses: nrwl/nx-cloud-workflows/v5/workflow-steps/checkout/main.yaml
+      - name: Install Node.js 24
+        uses: nrwl/nx-cloud-workflows/v5/workflow-steps/install-node/main.yaml
+        inputs:
+          node_version: '24'
+      - name: Install Bun 1.1.30
+        script: |
+          curl -fsSL https://bun.sh/install | bash -s "bun-v1.1.30"
+          echo "PATH=$HOME/.bun/bin:$PATH" >> "$NX_CLOUD_ENV"
+      - name: Install dependencies
+        script: bun install --frozen-lockfile

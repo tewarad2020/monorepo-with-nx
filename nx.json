@@ -13,7 +13,9 @@
       "!{projectRoot}/src/test-setup.[jt]s"
     ],
     "sharedGlobals": [
-      "{workspaceRoot}/.github/workflows/ci.yml"
+      "{workspaceRoot}/.github/workflows/ci.yml",
+      "{workspaceRoot}/.nx/ci-config.yaml",
+      "{workspaceRoot}/.nx/workflows/agents.yaml"
     ]
   },
   "plugins": [

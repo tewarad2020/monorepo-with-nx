@@ -38,8 +38,11 @@ jobs:
           # Match the Bun version used to generate bun.lockb.
           bun-version: '1.1.30'
 
-      # Run tasks on this runner until Nx Agents have Go and Bun configured.
-      # The current linux-medium-js template is not a mixed Go/Bun environment.
+      # Start agents early so their setup overlaps dependency installation.
+      # Agent toolchains are configured in .nx/workflows/agents.yaml.
+      - run: bunx nx start-nx-agents
+
+      # Go checks run directly on this runner, not on the frontend agents.
       - name: Set up Go
         uses: actions/setup-go@v7
         with:
@@ -66,10 +69,10 @@ jobs:
           go vet ./...
           go build -o "$RUNNER_TEMP/todo-backend" .
 
-      # No lint target is configured. Vitest disables watch mode in CI.
-      # Use test, not the Cloud-only atomized test-ci target, on this runner.
+      # Split frontend tests across Nx Agents using the atomized CI target.
+      # No lint target is configured in this workspace.
       - name: Check affected frontend projects
-        run: bun x nx affected -t typecheck test build
+        run: bun x nx affected -t typecheck test-ci build
 
       - name: Nx Cloud self-healing
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}

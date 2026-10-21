@@ -1,9 +1,11 @@
 # Nx Cloud reads this file to configure your CI Pipeline Executions.
-# Uncomment the "nx start-nx-agents" line in your CI workflow to distribute tasks across agents.
+# The CI workflow starts agents with "bunx nx start-nx-agents".
 # Learn how to start Nx Agents at https://nx.dev/ci/reference/nx-cloud-cli#nx-cloud-start-nx-agents
 # Learn how to configure this file at https://nx.dev/ci/reference/nx-cloud/ci-config
 dte:
-  distribute-on: 3 linux-medium-js
+  distribute-on: 3 linux-medium-bun
 lifecycle:
   stop-after:
+    - typecheck
+    - test-ci
     - build
