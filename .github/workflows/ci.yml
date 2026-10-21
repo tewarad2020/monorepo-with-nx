@@ -1,4 +1,85 @@
-name: CI
+# name: CI
+
+# on:
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+
+# permissions:
+#   actions: read
+#   contents: read
+
+# concurrency:
+#   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+#   cancel-in-progress: true
+
+# jobs:
+#   main:
+#     runs-on: ubuntu-latest
+#     timeout-minutes: 20
+#     env:
+#       CI: 'true'
+#       NX_DAEMON: 'false'
+#     steps:
+#       - uses: actions/checkout@v7
+#         with:
+#           filter: tree:0
+#           fetch-depth: 0
+
+#       - name: Set up Node.js
+#         uses: actions/setup-node@v7
+#         with:
+#           node-version: '24'
+#           package-manager-cache: false
+
+#       - uses: oven-sh/setup-bun@v2
+#         with:
+#           # Match the Bun version used to generate bun.lockb.
+#           bun-version: '1.1.30'
+
+#       # Start agents early so their setup overlaps dependency installation.
+#       # Agent toolchains are configured in .nx/workflows/agents.yaml.
+#       - run: bunx nx start-nx-agents
+
+#       # Go checks run directly on this runner, not on the frontend agents.
+#       - name: Set up Go
+#         uses: actions/setup-go@v7
+#         with:
+#           go-version-file: apps/backend/go.mod
+#           # This module currently uses only the standard library (no go.sum).
+#           cache: false
+
+#       - name: Install dependencies
+#         id: install
+#         run: bun install --frozen-lockfile
+
+#       - uses: nrwl/nx-set-shas@v5
+#         with:
+#           main-branch-name: main
+
+#       # Backend has no Nx test/build targets yet, so check it explicitly.
+#       - name: Test backend
+#         working-directory: apps/backend
+#         run: go test -race -count=1 ./...
+
+#       - name: Vet and build backend
+#         working-directory: apps/backend
+#         run: |
+#           go vet ./...
+#           go build -o "$RUNNER_TEMP/todo-backend" .
+
+#       # Split frontend tests across Nx Agents using the atomized CI target.
+#       # No lint target is configured in this workspace.
+#       - name: Check affected frontend projects
+#         run: bun x nx affected -t typecheck test-ci build
+
+#       - name: Nx Cloud self-healing
+#         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+#         run: bun x nx fix-ci
+
+
+name: CI (Nx Monorepo)
 
 on:
   push:
@@ -35,19 +116,12 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
         with:
-          # Match the Bun version used to generate bun.lockb.
           bun-version: '1.1.30'
 
-      # Start agents early so their setup overlaps dependency installation.
-      # Agent toolchains are configured in .nx/workflows/agents.yaml.
-      - run: bunx nx start-nx-agents
-
-      # Go checks run directly on this runner, not on the frontend agents.
       - name: Set up Go
         uses: actions/setup-go@v7
         with:
           go-version-file: apps/backend/go.mod
-          # This module currently uses only the standard library (no go.sum).
           cache: false
 
       - name: Install dependencies
@@ -58,7 +132,8 @@ jobs:
         with:
           main-branch-name: main
 
-      # Backend has no Nx test/build targets yet, so check it explicitly.
+      # --- ส่วนที่ปรับให้เทียบเท่าฝั่ง Standard (รันทั้ง Go และ Frontend ผ่าน Nx หรือคำสั่งตรง) ---
+      
       - name: Test backend
         working-directory: apps/backend
         run: go test -race -count=1 ./...
@@ -69,11 +144,10 @@ jobs:
           go vet ./...
           go build -o "$RUNNER_TEMP/todo-backend" .
 
-      # Split frontend tests across Nx Agents using the atomized CI target.
-      # No lint target is configured in this workspace.
-      - name: Check affected frontend projects
+      # ใช้ Nx Affected เพื่อรันเฉพาะโปรเจกต์ที่แก้ไข (หัวใจความเร็วของ Nx)
+      - name: Typecheck, test, and build affected frontend
         run: bun x nx affected -t typecheck test-ci build
 
       - name: Nx Cloud self-healing
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: bun x nx fix-ci
+        run: bun x bunx nx fix-ci # หรือ bun x nx fix-ci
