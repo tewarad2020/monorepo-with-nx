@@ -8,13 +8,18 @@ interface Todo {
   completed: boolean;
 }
 
-type Theme = 'light' | 'dark';
+type Theme = 'light' | 'dark' | 'ocean';
 const themeStorageKey = 'frontend-theme';
+const themes: { value: Theme; label: string; icon: string }[] = [
+  { value: 'light', label: 'โหมดสว่าง', icon: '☀' },
+  { value: 'dark', label: 'โหมดมืด', icon: '☾' },
+  { value: 'ocean', label: 'Ocean', icon: '≈' },
+];
 
 function getInitialTheme(): Theme {
   try {
     const savedTheme = localStorage.getItem(themeStorageKey);
-    if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme;
+    if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'ocean') return savedTheme;
   } catch {
     // Keep theme switching available when browser storage is blocked.
   }
@@ -99,12 +104,15 @@ export function App() {
       <section className={styles.card} aria-labelledby="task-heading">
         <div className={styles.toolbar}>
           <p className={styles.eyebrow}>REACT + GO</p>
-          <button type="button" className={styles.themeToggle}
-            aria-label="โหมดมืด" aria-pressed={theme === 'dark'}
-            onClick={() => setTheme((current) => current === 'light' ? 'dark' : 'light')}>
-            <span aria-hidden="true">{theme === 'dark' ? '☀' : '☾'}</span>
-            {theme === 'dark' ? 'โหมดสว่าง' : 'โหมดมืด'}
-          </button>
+          <div className={styles.themeOptions} role="group" aria-label="เลือกธีม">
+            {themes.map((option) => (
+              <button key={option.value} type="button" className={styles.themeToggle}
+                aria-pressed={theme === option.value} onClick={() => setTheme(option.value)}>
+                <span aria-hidden="true">{option.icon}</span>
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
         <h1 id="task-heading">รายการ Tasks</h1>
         <p className={styles.subtitle}>เพิ่มงานใหม่หรือลบงานที่ไม่ต้องการ</p>

@@ -10,6 +10,7 @@
 	--danger-bg: #fff0f0;
 	--danger-text: #a62236;
 	--shadow: #2339630d;
+	--focus: #94b0ff;
 	color-scheme: light;
 	min-height: 100vh;
 	box-sizing: border-box;
@@ -34,6 +35,22 @@
 	--shadow: #00000033;
 	color-scheme: dark;
 }
+.page[data-theme='ocean'] {
+	--page-bg: #e0f4f7;
+	--surface: #f5fdff;
+	--text: #123e52;
+	--muted: #446c7c;
+	--border: #a9d5df;
+	--input-border: #71a8b8;
+	--accent: #006b80;
+	--button-bg: #00758a;
+	--danger-bg: #ffecef;
+	--danger-text: #a62236;
+	--shadow: #005f7320;
+	--focus: #00869c;
+	color-scheme: light;
+	background: radial-gradient(ellipse at top left, #c1f2eb, transparent 65%), linear-gradient(145deg, #e0f4f7, #cce7f5);
+}
 .card {
 	box-sizing: border-box;
 	width: min(100%, 640px);
@@ -44,6 +61,7 @@
 	box-shadow: 0 16px 48px var(--shadow);
 }
 .toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.themeOptions { display: flex; flex-wrap: wrap; gap: 6px; }
 .eyebrow { color: var(--accent); font-size: 12px; font-weight: 700; letter-spacing: 2px; }
 .card h1 { margin: 12px 0; font-size: 30px; }
 .subtitle, .count, .empty { color: var(--muted); }
@@ -53,9 +71,10 @@
 .form input::placeholder { color: var(--muted); opacity: 1; }
 .card button { font: inherit; font-weight: 600; border: 0; border-radius: 10px; padding: 10px 16px; background: var(--button-bg); color: white; cursor: pointer; }
 .card .themeToggle { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--border); background: var(--page-bg); color: var(--text); font-size: 14px; }
+.card .themeToggle[aria-pressed='true'] { border-color: var(--button-bg); background: var(--button-bg); color: white; }
 .themeToggle span { font-size: 20px; line-height: 1; }
 .card button:disabled { opacity: .5; cursor: not-allowed; }
-.card :focus-visible { outline: 3px solid #94b0ff; outline-offset: 3px; }
+.card :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 .count { font-size: 13px; margin-top: 28px; }
 .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
 .list li { display: flex; align-items: center; justify-content: space-between; gap: 16px; border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
