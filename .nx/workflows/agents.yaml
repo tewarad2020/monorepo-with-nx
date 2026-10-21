@@ -14,7 +14,11 @@ launch-templates:
           node_version: '24'
       - name: Install Bun 1.1.30
         script: |
-          curl -fsSL https://bun.sh/install | bash -s "bun-v1.1.30"
+          set -eu
+          # npm extracts the platform binary without requiring system unzip.
+          npm install --global --prefix "$HOME/.bun" bun@1.1.30
+          export PATH="$HOME/.bun/bin:$PATH"
           echo "PATH=$HOME/.bun/bin:$PATH" >> "$NX_CLOUD_ENV"
+          bun --version
       - name: Install dependencies
         script: bun install --frozen-lockfile
