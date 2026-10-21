@@ -4,11 +4,33 @@
   "license": "MIT",
   "scripts": {},
   "private": true,
-  "dependencies": {},
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "6.30.3"
+  },
   "devDependencies": {
     "@nx/js": "23.3.0",
+    "@nx/react": "^23.3.0",
+    "@nx/vite": "23.3.0",
+    "@nx/vitest": "23.3.0",
+    "@nx/web": "23.3.0",
     "@nx/workspace": "23.3.0",
+    "@swc/helpers": "~0.5.18",
+    "@testing-library/dom": "10.4.0",
+    "@testing-library/react": "16.3.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^6.0.0",
+    "@vitest/coverage-v8": "~5.0.1",
+    "@vitest/ui": "~5.0.1",
+    "jiti": "2.4.2",
+    "jsdom": "^27.1.0",
     "nx": "23.3.0",
-    "typescript": "~6.0.3"
+    "tslib": "^2.3.0",
+    "typescript": "~6.0.3",
+    "vite": "^8.0.0",
+    "vitest": "~5.0.1"
   }
 }
