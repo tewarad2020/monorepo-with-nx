@@ -121,6 +121,60 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'รายการ Tasks' })).toBeTruthy();
   });
 
+  it('filters tasks without case sensitivity or extra API requests', async () => {
+    fetchMock.mockResolvedValue(new Response(JSON.stringify([
+      task, { id: 2, title: 'ซื้อกาแฟ', completed: false },
+    ])));
+    render(<App />);
+    await screen.findByText(task.title);
+    fireEvent.change(screen.getByRole('searchbox', { name: 'ค้นหา Tasks' }), {
+      target: { value: '  TEST  ' },
+    });
+    expect(screen.getByText(task.title)).toBeTruthy();
+    expect(screen.queryByText('ซื้อกาแฟ')).toBeNull();
+    expect(screen.getByRole('status').textContent).toBe('พบ 1 จาก 2 tasks');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'กาแฟ' } });
+    expect(screen.getByText('ซื้อกาแฟ')).toBeTruthy();
+    expect(screen.queryByText(task.title)).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'ล้างการค้นหา' }));
+    expect((screen.getByRole('searchbox') as HTMLInputElement).value).toBe('');
+    expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    expect(screen.getByRole('status').textContent).toBe('2 tasks');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a distinct message for no search matches and treats whitespace as empty', async () => {
+    fetchMock.mockResolvedValue(new Response(JSON.stringify([task])));
+    render(<App />);
+    await screen.findByText(task.title);
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'missing' } });
+    expect(screen.getByText('ไม่พบ task ที่ตรงกับการค้นหา')).toBeTruthy();
+    expect(screen.getByRole('status').textContent).toBe('พบ 0 จาก 1 tasks');
+    expect(screen.queryByRole('list')).toBeNull();
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: '   ' } });
+    expect(screen.getByText(task.title)).toBeTruthy();
+    expect(screen.getByRole('status').textContent).toBe('1 tasks');
+  });
+
+  it('keeps the active search when adding and deleting matching tasks', async () => {
+    fetchMock.mockResolvedValueOnce(new Response('[]'));
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify(task), { status: 201 }));
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }));
+    render(<App />);
+    await screen.findByText(/ยังไม่มี task/);
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'test' } });
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: task.title } });
+    fireEvent.click(screen.getByRole('button', { name: 'เพิ่ม task' }));
+    expect(await screen.findByText(task.title)).toBeTruthy();
+    expect(screen.getByRole('status').textContent).toBe('พบ 1 จาก 1 tasks');
+    fireEvent.click(screen.getByRole('button', { name: `ลบ ${task.title}` }));
+    await screen.findByText(/ยังไม่มี task/);
+    expect((screen.getByRole('searchbox') as HTMLInputElement).value).toBe('test');
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
   it('adds a task and clears the input', async () => {
     fetchMock.mockResolvedValueOnce(new Response('[]'));
     fetchMock.mockResolvedValueOnce(new Response(JSON.stringify(task), { status: 201 }));

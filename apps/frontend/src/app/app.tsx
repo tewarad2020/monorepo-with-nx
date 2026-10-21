@@ -30,11 +30,14 @@ export function App() {
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
   const [todos, setTodos] = useState<Todo[]>([]);
   const [title, setTitle] = useState('');
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<number[]>([]);
   const [error, setError] = useState('');
   const [reload, setReload] = useState(0);
+  const query = search.trim().toLocaleLowerCase();
+  const visibleTodos = todos.filter((todo) => todo.title.toLocaleLowerCase().includes(query));
 
   useEffect(() => {
     try {
@@ -134,10 +137,23 @@ export function App() {
           <button type="button" disabled={loading} onClick={() => setReload((value) => value + 1)}>โหลดใหม่</button>
         </div>}
         {loading ? <p role="status">กำลังโหลด...</p> : <>
-          <p className={styles.count}>{todos.length} tasks</p>
-          {todos.length === 0 ? <p className={styles.empty}>ยังไม่มี task เริ่มเพิ่มงานแรกได้เลย</p> : (
+          <div className={styles.search}>
+            <label htmlFor="task-search">ค้นหา Tasks</label>
+            <div className={styles.searchControls}>
+              <input id="task-search" type="search" value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="พิมพ์ชื่อ task ที่ต้องการค้นหา..." />
+              {search && <button type="button" onClick={() => setSearch('')}>ล้างการค้นหา</button>}
+            </div>
+          </div>
+          <p className={styles.count} role="status">
+            {query ? `พบ ${visibleTodos.length} จาก ${todos.length} tasks` : `${todos.length} tasks`}
+          </p>
+          {todos.length === 0 ? <p className={styles.empty}>ยังไม่มี task เริ่มเพิ่มงานแรกได้เลย</p> : visibleTodos.length === 0 ? (
+            <p className={styles.empty}>ไม่พบ task ที่ตรงกับการค้นหา</p>
+          ) : (
             <ul className={styles.list}>
-              {todos.map((todo) => (
+              {visibleTodos.map((todo) => (
                 <li key={todo.id}>
                   <span>{todo.title}</span>
                   <button type="button" className={styles.delete}

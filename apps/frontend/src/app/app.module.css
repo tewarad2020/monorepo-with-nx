@@ -67,8 +67,12 @@
 .subtitle, .count, .empty { color: var(--muted); }
 .subtitle { margin-bottom: 28px; }
 .form { display: flex; gap: 10px; }
-.form input { min-width: 0; flex: 1; border: 1px solid var(--input-border); border-radius: 10px; padding: 12px; font: inherit; background: var(--surface); color: var(--text); }
-.form input::placeholder { color: var(--muted); opacity: 1; }
+.form input, .search input { min-width: 0; flex: 1; border: 1px solid var(--input-border); border-radius: 10px; padding: 12px; font: inherit; background: var(--surface); color: var(--text); }
+.form input::placeholder, .search input::placeholder { color: var(--muted); opacity: 1; }
+.search { margin-top: 28px; }
+.search label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; }
+.searchControls { display: flex; gap: 10px; }
+.searchControls button { flex-shrink: 0; }
 .card button { font: inherit; font-weight: 600; border: 0; border-radius: 10px; padding: 10px 16px; background: var(--button-bg); color: white; cursor: pointer; }
 .card .themeToggle { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--border); background: var(--page-bg); color: var(--text); font-size: 14px; }
 .card .themeToggle[aria-pressed='true'] { border-color: var(--button-bg); background: var(--button-bg); color: white; }
@@ -87,4 +91,5 @@
 	.page { padding: 24px 12px; }
 	.card { padding: 22px; }
 	.form { flex-direction: column; }
+	.searchControls { flex-direction: column; }
 }
