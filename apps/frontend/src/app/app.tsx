@@ -8,7 +8,21 @@ interface Todo {
   completed: boolean;
 }
 
+type Theme = 'light' | 'dark';
+const themeStorageKey = 'frontend-theme';
+
+function getInitialTheme(): Theme {
+  try {
+    const savedTheme = localStorage.getItem(themeStorageKey);
+    if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme;
+  } catch {
+    // Keep theme switching available when browser storage is blocked.
+  }
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
 export function App() {
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
   const [todos, setTodos] = useState<Todo[]>([]);
   const [title, setTitle] = useState('');
   const [loading, setLoading] = useState(true);
@@ -16,6 +30,14 @@ export function App() {
   const [deleting, setDeleting] = useState<number[]>([]);
   const [error, setError] = useState('');
   const [reload, setReload] = useState(0);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(themeStorageKey, theme);
+    } catch {
+      // The current theme still works without persistent storage.
+    }
+  }, [theme]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -73,9 +95,17 @@ export function App() {
   };
 
   return (
-    <main className={styles.page}>
+    <main className={styles.page} data-theme={theme}>
       <section className={styles.card} aria-labelledby="task-heading">
-        <p className={styles.eyebrow}>REACT + GO</p>
+        <div className={styles.toolbar}>
+          <p className={styles.eyebrow}>REACT + GO</p>
+          <button type="button" className={styles.themeToggle}
+            aria-label="โหมดมืด" aria-pressed={theme === 'dark'}
+            onClick={() => setTheme((current) => current === 'light' ? 'dark' : 'light')}>
+            <span aria-hidden="true">{theme === 'dark' ? '☀' : '☾'}</span>
+            {theme === 'dark' ? 'โหมดสว่าง' : 'โหมดมืด'}
+          </button>
+        </div>
         <h1 id="task-heading">รายการ Tasks</h1>
         <p className={styles.subtitle}>เพิ่มงานใหม่หรือลบงานที่ไม่ต้องการ</p>
         <form onSubmit={addTodo} className={styles.form}>

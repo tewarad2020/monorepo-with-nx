@@ -8,12 +8,73 @@ describe('App', () => {
 
   beforeEach(() => {
     fetchMock.mockReset();
+    localStorage.clear();
     vi.stubGlobal('fetch', fetchMock);
+    vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: false }));
   });
 
   afterEach(() => {
     cleanup();
+    localStorage.clear();
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
+  });
+
+  it('toggles the theme and remembers it without extra API requests', async () => {
+    fetchMock.mockResolvedValue(new Response('[]'));
+    const { unmount } = render(<App />);
+    await screen.findByText(/ยังไม่มี task/);
+    expect(screen.getByRole('main').getAttribute('data-theme')).toBe('light');
+    const toggle = screen.getByRole('button', { name: 'โหมดมืด' });
+    expect(toggle.getAttribute('aria-pressed')).toBe('false');
+    fireEvent.click(toggle);
+    expect(screen.getByRole('main').getAttribute('data-theme')).toBe('dark');
+    expect(toggle.getAttribute('aria-pressed')).toBe('true');
+    expect(localStorage.getItem('frontend-theme')).toBe('dark');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    unmount();
+    render(<App />);
+    await screen.findByText(/ยังไม่มี task/);
+    expect(screen.getByRole('main').getAttribute('data-theme')).toBe('dark');
+    fireEvent.click(screen.getByRole('button', { name: 'โหมดมืด' }));
+    expect(screen.getByRole('main').getAttribute('data-theme')).toBe('light');
+    expect(localStorage.getItem('frontend-theme')).toBe('light');
+  });
+
+  it('defaults to the system dark theme when no theme is saved', async () => {
+    vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: true }));
+    fetchMock.mockResolvedValue(new Response('[]'));
+    render(<App />);
+    await screen.findByText(/ยังไม่มี task/);
+    expect(screen.getByRole('main').getAttribute('data-theme')).toBe('dark');
+  });
+
+  it('prefers a saved theme over the system preference', async () => {
+    localStorage.setItem('frontend-theme', 'light');
+    vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: true }));
+    fetchMock.mockResolvedValue(new Response('[]'));
+    render(<App />);
+    await screen.findByText(/ยังไม่มี task/);
+    expect(screen.getByRole('main').getAttribute('data-theme')).toBe('light');
+  });
+
+  it('ignores invalid saved themes', async () => {
+    localStorage.setItem('frontend-theme', 'invalid');
+    fetchMock.mockResolvedValue(new Response('[]'));
+    render(<App />);
+    await screen.findByText(/ยังไม่มี task/);
+    expect(screen.getByRole('main').getAttribute('data-theme')).toBe('light');
+  });
+
+  it('allows switching themes when local storage is unavailable', async () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('Blocked'); });
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('Blocked'); });
+    fetchMock.mockRejectedValue(new Error('Offline'));
+    render(<App />);
+    await screen.findByRole('alert');
+    fireEvent.click(screen.getByRole('button', { name: 'โหมดมืด' }));
+    expect(screen.getByRole('main').getAttribute('data-theme')).toBe('dark');
   });
 
   it('loads existing tasks', async () => {
