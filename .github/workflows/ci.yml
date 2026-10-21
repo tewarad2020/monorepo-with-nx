@@ -5,8 +5,10 @@ on:
     branches:
       - main
   pull_request:
+  workflow_dispatch:
 
 permissions:
+  actions: read
   contents: read
 
 concurrency:
@@ -19,8 +21,15 @@ jobs:
     timeout-minutes: 20
     env:
       CI: 'true'
+      NX_DAEMON: 'false'
+      NX_TUI: 'false'
+      # Remote caching is optional; forks without secrets still run checks.
+      NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
+      NX_NO_CLOUD: ${{ secrets.NX_CLOUD_ACCESS_TOKEN == '' }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
@@ -33,14 +42,59 @@ jobs:
         with:
           bun-version: '1.1.30'
 
-      - name: Set up Go
-        uses: actions/setup-go@v7
+      - name: Restore Bun download cache
+        uses: actions/cache@v4
         with:
-          go-version-file: apps/backend/go.mod
-          cache: false
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ runner.arch }}-1.1.30-${{ hashFiles('bun.lockb') }}
+          restore-keys: |
+            bun-${{ runner.os }}-${{ runner.arch }}-1.1.30-
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Typecheck, test, vet and build
-        run: bun run check
+      - name: Select base from last successful main CI
+        uses: nrwl/nx-set-shas@v5
+        with:
+          main-branch-name: main
+
+      - name: Find projects to check
+        id: projects
+        shell: bash
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' ]]; then
+            projects=$(bun nx show projects --withTarget=check --json)
+          else
+            projects=$(bun nx show projects --affected --withTarget=check --json)
+          fi
+          echo "projects=$projects" >> "$GITHUB_OUTPUT"
+          echo "Projects to check: $projects"
+
+      - name: Set up Go only when backend is affected
+        if: contains(fromJSON(steps.projects.outputs.projects), 'backend')
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: apps/backend/go.mod
+          cache: true
+          cache-dependency-path: apps/backend/go.mod
+
+      - name: Typecheck, test, vet and build selected projects
+        env:
+          SELECTED_PROJECTS: ${{ steps.projects.outputs.projects }}
+        shell: bash
+        run: |
+          start=$SECONDS
+          if [[ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' ]]; then
+            bun run check
+          else
+            bun run check:affected
+          fi
+          {
+            echo '## Nx CI results'
+            echo "- Projects: $SELECTED_PROJECTS"
+            echo "- Check duration: $((SECONDS - start)) seconds (excludes setup/install)"
+            echo "- Comparison base: $NX_BASE"
+            echo "- Comparison head: $NX_HEAD"
+            echo "- Remote cache disabled: $NX_NO_CLOUD"
+            echo '- See Nx logs for executed tasks and cache hits; compare total job duration separately.'
+          } >> "$GITHUB_STEP_SUMMARY"

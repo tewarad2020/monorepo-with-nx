@@ -3,9 +3,10 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "check": "bun run check:frontend && bun run check:backend",
-    "check:frontend": "bun nx run-many -t typecheck build -p frontend --no-cloud && bun nx run frontend:test --run --no-cloud",
-    "check:backend": "cd apps/backend && go test -race -count=1 ./... && go vet ./... && go build -o \"${RUNNER_TEMP:-${TMPDIR:-/tmp}}/todo-backend\" ."
+    "check": "bun nx run-many -t check --outputStyle=static",
+    "check:affected": "bun nx affected -t check --outputStyle=static",
+    "check:frontend": "bun nx run frontend:check --outputStyle=static",
+    "check:backend": "bun nx run backend:check --outputStyle=static"
   },
   "private": true,
   "dependencies": {

@@ -13,6 +13,9 @@
       "!{projectRoot}/src/test-setup.[jt]s"
     ],
     "sharedGlobals": [
+      "{workspaceRoot}/package.json",
+      { "runtime": "node --version" },
+      { "runtime": "bun --version" },
       "{workspaceRoot}/.github/workflows/ci.yml",
       "{workspaceRoot}/.nx/ci-config.yaml",
       "{workspaceRoot}/.nx/workflows/agents.yaml"

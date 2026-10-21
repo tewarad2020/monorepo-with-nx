@@ -3,6 +3,20 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "targets": {
+    "check": {
+      "executor": "nx:run-commands",
+      "cache": true,
+      "inputs": [
+        "default",
+        { "runtime": "go version" },
+        { "runtime": "go env GOOS GOARCH CGO_ENABLED CC" }
+      ],
+      "outputs": ["{workspaceRoot}/dist/backend"],
+      "options": {
+        "command": "go test -race -count=1 ./... && go vet ./... && go build -o ../../dist/backend/todo-backend .",
+        "cwd": "apps/backend"
+      }
+    },
     "serve": {
       "executor": "nx:run-commands",
       "options": {
