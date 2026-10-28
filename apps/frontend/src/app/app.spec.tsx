@@ -42,40 +42,40 @@ describe('App', () => {
     expect(localStorage.getItem('frontend-theme')).toBe('light');
   });
 
-  it('selects and restores Ocean without extra API requests', async () => {
+  it('selects and restores Desert without extra API requests', async () => {
     fetchMock.mockImplementation(async () => new Response('[]'));
     const { unmount } = render(<App />);
     await screen.findByText(/ยังไม่มี task/);
-    const oceanButton = screen.getByRole('button', { name: 'Ocean' });
-    expect(oceanButton.getAttribute('aria-pressed')).toBe('false');
-    fireEvent.click(oceanButton);
-    expect(screen.getByRole('main').getAttribute('data-theme')).toBe('ocean');
-    expect(oceanButton.getAttribute('aria-pressed')).toBe('true');
+    const desertButton = screen.getByRole('button', { name: 'ทะเลทราย' });
+    expect(desertButton.getAttribute('aria-pressed')).toBe('false');
+    fireEvent.click(desertButton);
+    expect(screen.getByRole('main').getAttribute('data-theme')).toBe('desert');
+    expect(desertButton.getAttribute('aria-pressed')).toBe('true');
     expect(screen.getByRole('button', { name: 'โหมดสว่าง' }).getAttribute('aria-pressed')).toBe('false');
-    expect(localStorage.getItem('frontend-theme')).toBe('ocean');
+    expect(localStorage.getItem('frontend-theme')).toBe('desert');
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
     unmount();
     vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: true }));
     render(<App />);
     await screen.findByText(/ยังไม่มี task/);
-    expect(screen.getByRole('main').getAttribute('data-theme')).toBe('ocean');
+    expect(screen.getByRole('main').getAttribute('data-theme')).toBe('desert');
     fireEvent.click(screen.getByRole('button', { name: 'โหมดมืด' }));
     expect(screen.getByRole('main').getAttribute('data-theme')).toBe('dark');
-    fireEvent.click(screen.getByRole('button', { name: 'Ocean' }));
+    fireEvent.click(screen.getByRole('button', { name: 'ทะเลทราย' }));
     fireEvent.click(screen.getByRole('button', { name: 'โหมดสว่าง' }));
     expect(screen.getByRole('main').getAttribute('data-theme')).toBe('light');
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
-  it('allows Ocean mode while offline and storage is blocked', async () => {
+  it('allows Desert mode while offline and storage is blocked', async () => {
     vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('Blocked'); });
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('Blocked'); });
     fetchMock.mockRejectedValue(new Error('Offline'));
     render(<App />);
     await screen.findByRole('alert');
-    fireEvent.click(screen.getByRole('button', { name: 'Ocean' }));
-    expect(screen.getByRole('main').getAttribute('data-theme')).toBe('ocean');
+    fireEvent.click(screen.getByRole('button', { name: 'ทะเลทราย' }));
+    expect(screen.getByRole('main').getAttribute('data-theme')).toBe('desert');
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 

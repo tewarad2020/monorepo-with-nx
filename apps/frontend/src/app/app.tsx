@@ -8,18 +8,18 @@ interface Todo {
   completed: boolean;
 }
 
-type Theme = 'light' | 'dark' | 'ocean';
+type Theme = 'light' | 'dark' | 'desert';
 const themeStorageKey = 'frontend-theme';
 const themes: { value: Theme; label: string; icon: string }[] = [
   { value: 'light', label: 'โหมดสว่าง', icon: '☀' },
   { value: 'dark', label: 'โหมดมืด', icon: '☾' },
-  { value: 'ocean', label: 'Ocean', icon: '≈' },
+  { value: 'desert', label: 'ทะเลทราย', icon: '🏜' },
 ];
 
 function getInitialTheme(): Theme {
   try {
     const savedTheme = localStorage.getItem(themeStorageKey);
-    if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'ocean') return savedTheme;
+    if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'desert') return savedTheme;
   } catch {
     // Keep theme switching available when browser storage is blocked.
   }

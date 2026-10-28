@@ -35,21 +35,21 @@
 	--shadow: #00000033;
 	color-scheme: dark;
 }
-.page[data-theme='ocean'] {
-	--page-bg: #e0f4f7;
-	--surface: #f5fdff;
-	--text: #123e52;
-	--muted: #446c7c;
-	--border: #a9d5df;
-	--input-border: #71a8b8;
-	--accent: #006b80;
-	--button-bg: #00758a;
-	--danger-bg: #ffecef;
-	--danger-text: #a62236;
-	--shadow: #005f7320;
-	--focus: #00869c;
+.page[data-theme='desert'] {
+	--page-bg: #f6e8d2;
+	--surface: #fffaf0;
+	--text: #49301f;
+	--muted: #7a5b43;
+	--border: #dec49e;
+	--input-border: #b48b60;
+	--accent: #9a4c24;
+	--button-bg: #984b26;
+	--danger-bg: #fbe5da;
+	--danger-text: #9a3025;
+	--shadow: #77462220;
+	--focus: #a86128;
 	color-scheme: light;
-	background: radial-gradient(ellipse at top left, #c1f2eb, transparent 65%), linear-gradient(145deg, #e0f4f7, #cce7f5);
+	background: radial-gradient(ellipse at top left, #fff2cc, transparent 65%), linear-gradient(145deg, #f6e8d2, #dfb486);
 }
 .card {
 	box-sizing: border-box;
