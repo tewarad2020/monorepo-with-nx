@@ -1,5 +1,77 @@
 # MonorepoWithNx
 
+## Jenkins CI
+
+[Jenkinsfile](Jenkinsfile) builds and checks **both projects on every run** using
+the existing `bun run check` command. It does not depend on GitHub Actions or a
+previous successful commit, so the first build and shallow checkouts work too.
+The existing GitHub Actions workflow is unchanged; disable it in GitHub if Jenkins
+should be the only CI provider.
+
+### Jenkins prerequisites
+
+1. Use a Jenkins LTS installation with **Pipeline** (including Declarative),
+	**Git**, and **Docker Pipeline** plugins installed.
+2. Provide a **Linux Jenkins agent** with Git and Docker CLI installed, a running
+	Docker daemon, and the label **docker**. The Jenkins agent user must be allowed
+	to run Docker. Run builds on an agent, not the Jenkins controller.
+3. The Docker daemon must be able to mount the agent workspace at the same path.
+	A remote Docker daemon with a different filesystem will not work. If Jenkins
+	itself runs in a container, configuring Docker CLI, daemon access, workspace
+	mounts, and permissions is still required; the standard Jenkins image alone
+	is not a Docker-capable build agent.
+4. Allow access to Docker Hub, the Bun/npm package registry, and the Go module
+	proxy. No Node/Bun/Go installation is needed on the host agent: Jenkins builds
+	the toolchain image from [ci/jenkins/Dockerfile](ci/jenkins/Dockerfile).
+
+The image uses Node **24**, Bun **1.1.30** (matching GitHub Actions), and Go
+**1.26.2** (matching [apps/backend/go.mod](apps/backend/go.mod)). It includes GCC
+and enables CGO for the Go race detector. Node's major-version image receives
+patch updates; pin image digests if exact reproducibility is required.
+
+### Create the Jenkins job
+
+1. Push these changes to your Git repository.
+2. Select **New Item → Pipeline** (or **Multibranch Pipeline** for branch/PR builds).
+3. For a Pipeline job, select **Pipeline script from SCM → Git**, enter the
+	repository URL, select repository credentials if private, and choose the branch
+	to build, for example `*/main`.
+4. Set **Script Path** to [Jenkinsfile](Jenkinsfile), then **Save → Build Now**.
+	For Multibranch Pipeline, configure the Git/GitHub branch source and scan it.
+5. To build on pushes, configure the matching Git provider plugin/webhook in
+	Jenkins and the repository. Manual builds work without a webhook.
+
+Keep repository credentials in Jenkins Credentials, never in source control.
+Docker access is effectively host-level access: use isolated agents for trusted
+repositories and do not run untrusted fork PRs on privileged shared agents.
+
+### Pipeline stages and outputs
+
+| Stage | Action |
+| --- | --- |
+| Toolchain | Print tool versions and prepare writable tool caches |
+| Install dependencies | `bun install --frozen-lockfile` |
+| Check and build | Frontend TypeScript, Vitest, production build; backend race tests, vet, binary build |
+| Archive artifacts | Save frontend static files and backend executable with fingerprints |
+
+Successful builds expose frontend assets and the backend executable in the
+Jenkins build's **Artifacts** page. Frontend output is under **apps/dist/frontend**
+(not the workspace-root dist directory); backend output is **dist/backend/todo-backend**.
+The backend executable targets the Linux agent's CPU architecture. This pipeline
+does not deploy the application or build a production runtime image.
+
+Nx Cloud is disabled by default, so no cache token is required. Nx task caches,
+Bun downloads, and Go caches can be reused while the same agent workspace is
+retained; fresh workspaces rebuild normally. The writable toolchain home is
+ignored by Git. Pipeline/toolchain changes are included in Nx shared inputs to
+avoid reusing checks from an older CI configuration.
+
+If the job stays queued, check that an online agent has the **docker** label.
+For `docker: not found` or daemon permission errors, fix the host agent setup;
+installing Docker Pipeline alone does not install Docker. If dependencies fail to
+install, check registry connectivity and the committed lockfile rather than
+removing `--frozen-lockfile`.
+
 ## CI performance experiment
 
 CI runs on pushes to `main` and pull requests. `nx affected` selects projects

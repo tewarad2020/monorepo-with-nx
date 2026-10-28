@@ -17,6 +17,8 @@
       { "runtime": "node --version" },
       { "runtime": "bun --version" },
       "{workspaceRoot}/.github/workflows/ci.yml",
+      "{workspaceRoot}/Jenkinsfile",
+      "{workspaceRoot}/ci/jenkins/Dockerfile",
       "{workspaceRoot}/.nx/ci-config.yaml",
       "{workspaceRoot}/.nx/workflows/agents.yaml"
     ]

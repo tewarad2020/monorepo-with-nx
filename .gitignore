@@ -49,3 +49,6 @@ vitest.config.*.timestamp*
 .vitest
 
 .nx/polygraph
+
+# Writable toolchain home/cache for Jenkins Docker agents
+.jenkins-home/
