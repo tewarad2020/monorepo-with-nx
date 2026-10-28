@@ -45,6 +45,41 @@ Keep repository credentials in Jenkins Credentials, never in source control.
 Docker access is effectively host-level access: use isolated agents for trusted
 repositories and do not run untrusted fork PRs on privileged shared agents.
 
+### GitHub push webhook on a local Jenkins (PoC)
+
+The Pipeline declares `githubPush()` and requires the **GitHub** plugin. Push the
+updated [Jenkinsfile](Jenkinsfile) and run **Build Now** once so Jenkins loads the
+trigger. The job must use **Pipeline script from SCM**, point at this repository,
+and select `*/main`. Disable Poll SCM if switching to webhooks.
+
+[ci/jenkins/webhook/compose.yaml](ci/jenkins/webhook/compose.yaml) provides an
+optional Cloudflare Quick Tunnel through an nginx proxy. It requires the existing
+external Docker network **jenkins-ci** and a controller container reachable as
+**jenkins:8080** on that network. Start the Compose project **jenkins-webhook**
+using that Compose file and find the generated HTTPS URL in the **tunnel** service
+logs. The proxy exposes only POST requests to **/github-webhook/**; all other
+paths, including the Jenkins UI/API, return 404. No host ports are published.
+
+In GitHub repository **Settings → Webhooks → Add webhook**, use the generated
+HTTPS URL followed by **/github-webhook/**, select **application/json**, keep SSL
+verification enabled, and select **Just the push event**. Configure the same
+webhook shared secret in the Jenkins GitHub plugin and GitHub; keep it in Jenkins
+Credentials rather than source control. Agent secrets are unrelated and must not
+be reused. Manual webhook registration does not require giving Jenkins a GitHub
+token with hook-management permissions.
+
+Use GitHub **Recent Deliveries** to verify a successful ping/delivery, then push a
+new commit to main and confirm Jenkins starts a build. A successful delivery does
+not itself prove a build ran: the SCM trigger checks for unbuilt changes on the
+configured branch. Jenkins still uses Nx for checks/builds; this trigger does not
+enable affected selection or remote caching by itself.
+
+Quick Tunnel hostnames can change after a restart; update GitHub's Payload URL
+when they do. This setup is development-only, not a production ingress. Stop the
+**jenkins-webhook** Compose project when finished. Do not expose the Jenkins UI,
+disable Jenkins authentication/CSRF, or add browser-only tunnel authentication
+that prevents GitHub delivering webhooks.
+
 ### Pipeline stages and outputs
 
 | Stage | Action |

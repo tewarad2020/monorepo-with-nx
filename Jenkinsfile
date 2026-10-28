@@ -12,6 +12,11 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '10'))
     }
 
+    triggers {
+        // Requires the GitHub plugin and a reachable /github-webhook/ endpoint.
+        githubPush()
+    }
+
     environment {
         CI = 'true'
         NX_DAEMON = 'false'
